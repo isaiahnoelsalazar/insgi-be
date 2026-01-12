@@ -1,16 +1,21 @@
 from flask import Flask, jsonify, request
 import pymssql
 import sys
+from JSONBuilder import bake
 
 app = Flask(__name__)
 
-@app.route('/')
+@app.route("/")
 def home():
-    return 'insgi-be'
+    return "insgi-be"
 
-@app.route('/about')
+@app.route("/about")
 def about():
-    return sys.version
+    return jsonify(bake(sys.version))
+
+@app.route("/test")
+def test():
+    return jsonify(bake("Test JSON"))
 
 @app.route("/mssql_query")
 def python_mssql_query():
@@ -32,12 +37,12 @@ def python_mssql_query():
         for row in rows:
             data += str(row) + ","
 
-        data = {"response_data": data.strip()[:-1]}
+        data = bake(data.strip()[:-1])
         connection.close()
 
         return jsonify(data)
-    except Exception as e:
-        return jsonify({"response_data": str(e)})
+    except:
+        return jsonify(bake("Connection broken. Please check your parameters again."))
 
 @app.route("/mssql_execute")
 def python_mssql_execute():
@@ -55,6 +60,6 @@ def python_mssql_execute():
         connection.commit()
         connection.close()
 
-        return jsonify({"response_data": "Command completed."})
+        return jsonify(bake("Command completed."))
     except:
-        return jsonify({"response_data": "Connection broken. Please check your parameters again."})
+        return jsonify(bake("Connection broken. Please check your parameters again."))

@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "insgi-be"
+    return jsonify(bake("insgi-be"))
 
 @app.route("/about")
 def about():

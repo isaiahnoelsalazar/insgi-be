@@ -29,7 +29,7 @@ def test():
     return jsonify(bake("Test JSON"))
 
 @app.route("/api/test", methods=["GET"])
-def get_users():
+def get_test():
     try:
         conn = get_connection()
         cursor = conn.cursor(as_dict=True)

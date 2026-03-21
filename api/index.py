@@ -1,9 +1,20 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import pymssql
 import sys
+import os
 from PythonSimpleFunctions import bake
 
 app = Flask(__name__)
+CORS(app)
+
+def get_connection():
+    return pymssql.connect(
+        os.environ.get("DB_SERVER"),
+        os.environ.get("DB_USER"),
+        os.environ.get("DB_PASS"),
+        os.environ.get("DB_NAME")
+    )
 
 @app.route("/")
 def home():
@@ -16,6 +27,57 @@ def about():
 @app.route("/test")
 def test():
     return jsonify(bake("Test JSON"))
+
+@app.route("/api/test", methods=["GET"])
+def get_users():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(as_dict=True)
+
+        cursor.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME")
+        rows = cursor.fetchall()
+
+        conn.close()
+        return jsonify(rows)
+
+    except Exception as e:
+        return jsonify(bake(str(e))), 500
+
+@app.route("/api/users", methods=["GET"])
+def get_users():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(as_dict=True)
+
+        cursor.execute("SELECT id, name FROM Users")
+        rows = cursor.fetchall()
+
+        conn.close()
+        return jsonify(rows)
+
+    except Exception as e:
+        return jsonify(bake(str(e))), 500
+
+@app.route("/api/users", methods=["POST"])
+def create_user():
+    try:
+        data = request.json
+        name = data.get("name")
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "INSERT INTO Users (name) VALUES (%s)",
+            (name,)
+        )
+        conn.commit()
+        conn.close()
+
+        return jsonify(bake("User created successfully"))
+
+    except Exception as e:
+        return jsonify(bake(str(e))), 500
 
 @app.route("/mssql_query")
 def python_mssql_query():

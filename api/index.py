@@ -43,13 +43,31 @@ def get_test():
     except Exception as e:
         return jsonify(bake(str(e))), 500
 
-@app.route("/api/users", methods=["GET"])
-def get_users():
+@app.route("/api/attendance", methods=["GET"])
+def get_data():
     try:
         conn = get_connection()
         cursor = conn.cursor(as_dict=True)
 
-        cursor.execute("SELECT id, name FROM Users")
+        conn.cursor().execute("""
+        IF NOT EXISTS (
+            SELECT * FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_NAME = 'attendance_table'
+        )
+        BEGIN
+            CREATE TABLE attendance_table (
+                id NVARCHAR(MAX),
+                time_in NVARCHAR(MAX),
+                time_out NVARCHAR(MAX),
+                time_in_photo NVARCHAR(MAX),
+                time_out_photo NVARCHAR(MAX),
+                date NVARCHAR(MAX)
+            )
+        END
+        """)
+        conn.commit()
+
+        cursor.execute("SELECT id, time_in, time_out, time_in_photo, time_out_photo, date FROM attendance_table")
         rows = cursor.fetchall()
 
         conn.close()
@@ -58,23 +76,45 @@ def get_users():
     except Exception as e:
         return jsonify(bake(str(e))), 500
 
-@app.route("/api/users", methods=["POST"])
-def create_user():
+@app.route("/api/attendance", methods=["POST"])
+def insert_data():
     try:
         data = request.json
-        name = data.get("name")
+        id = data.get("id")
+        time_in = data.get("time_in")
+        time_out = data.get("time_out")
+        time_in_photo = data.get("time_in_photo")
+        time_out_photo = data.get("time_out_photo")
+        date = data.get("date")
 
         conn = get_connection()
         cursor = conn.cursor()
 
+        cursor.execute("""
+        IF NOT EXISTS (
+            SELECT * FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_NAME = 'attendance_table'
+        )
+        BEGIN
+            CREATE TABLE attendance_table (
+                id NVARCHAR(MAX),
+                time_in NVARCHAR(MAX),
+                time_out NVARCHAR(MAX),
+                time_in_photo NVARCHAR(MAX),
+                time_out_photo NVARCHAR(MAX),
+                date NVARCHAR(MAX)
+            )
+        END
+        """)
+
         cursor.execute(
-            "INSERT INTO Users (name) VALUES (%s)",
-            (name,)
+            "INSERT INTO attendance_table (id, time_in, time_out, time_in_photo, time_out_photo, date) VALUES (%s, %s, %s, %s, %s, %s)",
+            (id, time_in, time_out, time_in_photo, time_out_photo, date)
         )
         conn.commit()
         conn.close()
 
-        return jsonify(bake("User created successfully"))
+        return jsonify(bake("Added successfully"))
 
     except Exception as e:
         return jsonify(bake(str(e))), 500

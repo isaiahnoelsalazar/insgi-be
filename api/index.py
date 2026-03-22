@@ -43,6 +43,20 @@ def get_test():
     except Exception as e:
         return jsonify(bake(str(e))), 500
 
+@app.route("/api/clear", methods=["GET"])
+def clear_data():
+    try:
+        if request.args.get("c") == "go":
+            conn = get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute("TRUNCATE TABLE attendance_table")
+            conn.commit()
+            conn.close()
+
+    except Exception as e:
+        return jsonify(bake(str(e))), 500
+
 @app.route("/api/attendance", methods=["GET"])
 def get_data():
     try:
@@ -80,7 +94,7 @@ def get_data():
 def insert_data():
     try:
         data = request.json
-        id = data.get("id")
+        data_id = data.get("id")
         time_in = data.get("time_in")
         time_out = data.get("time_out")
         time_in_photo = data.get("time_in_photo")
@@ -109,7 +123,7 @@ def insert_data():
 
         cursor.execute(
             "INSERT INTO attendance_table (id, time_in, time_out, time_in_photo, time_out_photo, date) VALUES (%s, %s, %s, %s, %s, %s)",
-            (id, time_in, time_out, time_in_photo, time_out_photo, date)
+            (data_id, time_in, time_out, time_in_photo, time_out_photo, date)
         )
         conn.commit()
         conn.close()

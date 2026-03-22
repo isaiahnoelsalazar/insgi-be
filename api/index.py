@@ -54,6 +54,7 @@ def clear_data():
             conn.commit()
             conn.close()
 
+        return jsonify("Done")
     except Exception as e:
         return jsonify(bake(str(e))), 500
 

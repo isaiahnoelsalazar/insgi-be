@@ -43,20 +43,20 @@ def get_test():
     except Exception as e:
         return jsonify(bake(str(e))), 500
 
-@app.route("/api/clear", methods=["GET"])
-def clear_data():
-    try:
-        if request.args.get("c") == "go":
-            conn = get_connection()
-            cursor = conn.cursor()
-
-            cursor.execute("TRUNCATE TABLE attendance_table")
-            conn.commit()
-            conn.close()
-
-        return jsonify("Done")
-    except Exception as e:
-        return jsonify(bake(str(e))), 500
+# @app.route("/api/clear", methods=["GET"])
+# def clear_data():
+#     try:
+#         if request.args.get("c") == "go":
+#             conn = get_connection()
+#             cursor = conn.cursor()
+#
+#             cursor.execute("TRUNCATE TABLE attendance_table")
+#             conn.commit()
+#             conn.close()
+#
+#         return jsonify("Done")
+#     except Exception as e:
+#         return jsonify(bake(str(e))), 500
 
 @app.route("/api/attendance", methods=["GET"])
 def get_data():
